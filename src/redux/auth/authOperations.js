@@ -9,11 +9,12 @@ import {
 
 export const authSignUpUser = createAsyncThunk(
   "auth / signUp ",
-  async ({ login, email, password }, ThunkAPI) => {
+  async ({ login, email, password, imageAvatar }, ThunkAPI) => {
     try {
       await createUserWithEmailAndPassword(auth, email, password);
       await updateProfile(auth.currentUser, {
         displayName: login,
+        photoURL: imageAvatar,
       });
 
       const user = await auth.currentUser;
@@ -22,6 +23,7 @@ export const authSignUpUser = createAsyncThunk(
         login: user.displayName,
         email: user.email,
         stateChange: true,
+        imageAvatar: user.photoURL,
       };
       return userUpdateProfile;
     } catch (e) {

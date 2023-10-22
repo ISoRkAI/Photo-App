@@ -9,7 +9,7 @@ import {
   View,
 } from "react-native";
 import { useSelector } from "react-redux";
-import { selectorLogin } from "../../../../redux/selectors";
+import { selectorLogin, selectorUserId } from "../../../../redux/selectors";
 import { db } from "../../../../../firebase/config";
 import {
   addDoc,
@@ -18,6 +18,7 @@ import {
   onSnapshot,
   query,
   updateDoc,
+  where,
 } from "@firebase/firestore";
 import { useState } from "react";
 import { FlatList } from "react-native";
@@ -40,14 +41,14 @@ const optionsMonth = [
 export const CommentScreen = ({ route, navigation }) => {
   const [comment, setComment] = useState("");
   const [allComments, setAllComments] = useState([]);
-  const { postId, uri } = route.params;
+  const [allAvatar, setAllAvatar] = useState([]);
+
   const login = useSelector(selectorLogin);
+  const id = useSelector(selectorUserId);
+
+  const { postId, uri } = route.params;
   const screenHeight = Dimensions.get("window").width;
   const widthCommentBlock = screenHeight - 76;
-
-  useEffect(() => {
-    getAllComment();
-  }, []);
 
   useEffect(() => {
     navigation.addListener("transitionStart", () => {
@@ -62,7 +63,7 @@ export const CommentScreen = ({ route, navigation }) => {
   const getCommentTime = () => {
     const time = new Date();
     const D = addLeadingZero(time.getDate());
-    const M = optionsMonth[time.getDate()];
+    const M = optionsMonth[time.getMonth()];
     const Y = time.getFullYear();
     const h = time.getHours();
     const m = time.getMinutes();
@@ -80,8 +81,15 @@ export const CommentScreen = ({ route, navigation }) => {
 
   const getAllComment = async () => {
     const queryComments = query(collection(db, "posts", postId, "comment"));
-    await onSnapshot(queryComments, (data) => {
+    onSnapshot(queryComments, (data) => {
       setAllComments(data.docs.map((doc) => doc.data()));
+    });
+  };
+
+  const getAllAvatarImg = async () => {
+    const queryAvatar = query(collection(db, "avatar"));
+    onSnapshot(queryAvatar, (data) => {
+      setAllAvatar(data.docs.map((doc) => doc.data()));
     });
   };
 
@@ -92,6 +100,11 @@ export const CommentScreen = ({ route, navigation }) => {
     });
   };
 
+  useEffect(() => {
+    getAllAvatarImg();
+    getAllComment();
+  }, []);
+  console.log("image", allAvatar);
   return (
     <View
       style={{
@@ -117,7 +130,16 @@ export const CommentScreen = ({ route, navigation }) => {
           marginBottom: 82,
         }}
         renderItem={({ item }) => {
-          const { nickName, comment, time } = item;
+          const { nickName, comment, time, avatarPhoto } = item;
+
+          const result = allAvatar.filter((avatars) => {
+            return avatars.login.includes(nickName);
+          });
+
+          const avatar = result.map(({ photo }) => {
+            return photo;
+          });
+
           return (
             <View
               style={{
@@ -137,7 +159,10 @@ export const CommentScreen = ({ route, navigation }) => {
                   marginLeft: nickName === login ? 16 : 0,
                 }}
               >
-                <Text>{nickName}</Text>
+                <Image
+                  source={{ uri: avatar[0] }}
+                  style={{ width: 28, height: 28, borderRadius: 16 }}
+                />
               </View>
 
               <View

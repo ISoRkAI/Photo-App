@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import { useDispatch } from "react-redux";
 import {
   View,
@@ -6,7 +6,6 @@ import {
   Keyboard,
   KeyboardAvoidingView,
   Platform,
-  Image,
 } from "react-native";
 
 import { authSignUpUser } from "../../../redux/auth/authOperations";
@@ -28,14 +27,12 @@ import {
   Title,
 } from "./RegistrationScreen.styled";
 import * as ImagePicker from "expo-image-picker";
-import { nanoid } from "@reduxjs/toolkit";
-import { getDownloadURL, ref, uploadBytes } from "@firebase/storage";
-import { storage } from "../../../../firebase/config";
 
 const initialState = {
   email: "",
   password: "",
   login: "",
+  imageAvatar: "",
 };
 
 export default RegistrationScreen = ({ navigation }) => {
@@ -49,7 +46,6 @@ export default RegistrationScreen = ({ navigation }) => {
   const SigInUser = () => {
     if (state.login !== "" && state.email !== "" && state.password !== "") {
       dispatch(authSignUpUser(state));
-      // uploadAvatarPhotoToServer();
       setState(initialState);
     } else {
       setKeyboardStatus(false);
@@ -73,23 +69,14 @@ export default RegistrationScreen = ({ navigation }) => {
     console.log(result);
 
     if (!result.canceled) {
+      setState((prevState) => ({
+        ...prevState,
+        imageAvatar: result.assets[0].uri,
+      }));
       setImage(result.assets[0].uri);
     }
   };
 
-  // const uploadAvatarPhotoToServer = async () => {
-  //   try {
-  //     const id = nanoid();
-  //     const storageRef = ref(storage, `avatar/${id}`);
-  //     const response = await fetch(image);
-  //     const blob = await response.blob();
-  //     await uploadBytes(storageRef, blob);
-  //     const processedPhoto = await getDownloadURL(storageRef);
-  //     return processedPhoto;
-  //   } catch (error) {
-  //     console.log("error AvatarPhotoToServer", error);
-  //   }
-  // };
   return (
     <TouchableWithoutFeedback onPress={() => keyboardHide()}>
       <Container>
@@ -122,7 +109,9 @@ export default RegistrationScreen = ({ navigation }) => {
                       setImage();
                     }}
                   >
-                    <PlusImg source={require("../../../../assets/add.png")} />
+                    <PlusImg
+                      source={require("../../../../assets/delete.png")}
+                    />
                   </PlusBtn>
                 ) : (
                   <PlusBtn

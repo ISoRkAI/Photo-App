@@ -20,10 +20,14 @@ export const DefaultPostsScreen = ({ navigation }) => {
     });
   };
 
+  const sortedTransactions = [...posts].sort(
+    (a, b) => new Date(b.date) - new Date(a.date)
+  );
+
   return (
     <View style={styles.container}>
       <FlatList
-        data={posts}
+        data={sortedTransactions}
         keyExtractor={(_, indx) => indx.toString()}
         renderItem={({ item }) => {
           const { id, photo, photoName, region, length } = item;

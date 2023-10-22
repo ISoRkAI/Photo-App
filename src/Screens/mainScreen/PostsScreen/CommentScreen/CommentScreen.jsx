@@ -56,6 +56,11 @@ export const CommentScreen = ({ route, navigation }) => {
     });
   }, [navigation]);
 
+  useEffect(() => {
+    getAllAvatarImg();
+    getAllComment();
+  }, []);
+
   const addLeadingZero = (e) => {
     return e < 10 ? "0" + e : e;
   };
@@ -75,6 +80,7 @@ export const CommentScreen = ({ route, navigation }) => {
       comment,
       nickName: login,
       time: getCommentTime().toString(),
+      date: +new Date(),
     });
     recordsLengthComments();
   };
@@ -87,7 +93,7 @@ export const CommentScreen = ({ route, navigation }) => {
   };
 
   const getAllAvatarImg = async () => {
-    const queryAvatar = query(collection(db, "avatar"));
+    const queryAvatar = query(collection(db, "avatars"));
     onSnapshot(queryAvatar, (data) => {
       setAllAvatar(data.docs.map((doc) => doc.data()));
     });
@@ -100,11 +106,10 @@ export const CommentScreen = ({ route, navigation }) => {
     });
   };
 
-  useEffect(() => {
-    getAllAvatarImg();
-    getAllComment();
-  }, []);
-  console.log("image", allAvatar);
+  const sortedTransactions = [...allComments].sort(
+    (a, b) => new Date(b.date) - new Date(a.date)
+  );
+
   return (
     <View
       style={{
@@ -124,13 +129,13 @@ export const CommentScreen = ({ route, navigation }) => {
         }}
       />
       <FlatList
-        data={allComments}
+        data={sortedTransactions}
         keyExtractor={(_, indx) => indx.toString()}
         style={{
           marginBottom: 82,
         }}
         renderItem={({ item }) => {
-          const { nickName, comment, time, avatarPhoto } = item;
+          const { nickName, comment, time } = item;
 
           const result = allAvatar.filter((avatars) => {
             return avatars.login.includes(nickName);

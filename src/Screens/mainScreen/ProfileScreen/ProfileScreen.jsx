@@ -19,14 +19,20 @@ import { Feather } from "@expo/vector-icons";
 import { DefaultProfileScreen } from "./DefaultProfileScreen/DefaultProfileScreen";
 import { ImageBackground } from "react-native";
 import { ScrollView } from "react-native";
-import { getDownloadURL, ref, uploadBytes } from "@firebase/storage";
+import {
+  getDownloadURL,
+  ref,
+  uploadBytes,
+  uploadString,
+} from "@firebase/storage";
 import { nanoid } from "@reduxjs/toolkit";
 
 export const ProfileScreen = () => {
   const [posts, setPosts] = useState([]);
   const [image, setImage] = useState([]);
-  const [newImage, setNewImage] = useState([]);
+
   const dispatch = useDispatch();
+
   const id = useSelector(selectorUserId);
   const login = useSelector(selectorLogin);
 
@@ -34,13 +40,6 @@ export const ProfileScreen = () => {
     getUserPost();
     getUserAvatar();
   }, []);
-
-  useEffect(() => {
-    if (newImage.length > 0) {
-      uploadAvatarToServer(newImage);
-      return;
-    }
-  }, [newImage]);
 
   const signOut = () => {
     dispatch(authSignOutUser());
@@ -66,46 +65,9 @@ export const ProfileScreen = () => {
     });
   };
 
-  const pickImage = async () => {
-    let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.All,
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
-    });
-
-    if (!result.canceled) {
-      setNewImage(result.assets[0].uri);
-    }
-  };
-
-  const uploadAvatarToStorage = async (imageUri) => {
-    try {
-      const idAvatar = nanoid();
-      const storageRef = ref(storage, `avatar/${idAvatar}`);
-      const response = await fetch(imageUri);
-      const blob = await response.blob();
-      await uploadBytes(storageRef, blob);
-      const processedPhoto = await getDownloadURL(storageRef);
-      return processedPhoto;
-    } catch (error) {
-      console.log("error PhotoToServer", error);
-    }
-  };
-
-  const uploadAvatarToServer = async (imageUri) => {
-    try {
-      const photo = await uploadAvatarToStorage(imageUri);
-
-      await setDoc(doc(db, "avatars", `${id}`), {
-        photo,
-        userId: id,
-        login,
-      });
-    } catch (e) {
-      console.error("Error adding document: ", e);
-    }
-  };
+  const sortedTransactions = [...posts].sort(
+    (a, b) => new Date(b.date) - new Date(a.date)
+  );
 
   return (
     <View style={{ flex: 1, backgroundColor: "#932525" }}>
@@ -133,63 +95,11 @@ export const ProfileScreen = () => {
               alignItems: "center",
             }}
           >
-            <View
-              style={{
-                borderRadius: 16,
-              }}
-            >
-              {image.length !== 0 ? (
-                <Image
-                  source={{ uri: image[0] }}
-                  style={{ width: 120, height: 120, borderRadius: 16 }}
-                />
-              ) : (
-                <View
-                  style={{
-                    width: 120,
-                    height: 120,
-                    borderRadius: 16,
-                    backgroundColor: "#f6f6f6",
-                  }}
-                ></View>
-              )}
-              {image.length !== 0 ? (
-                <TouchableOpacity
-                  style={{
-                    position: "absolute",
-                    width: 25,
-                    height: 25,
-                    bottom: 18,
-                    right: -7.5,
-                  }}
-                  onPress={() => {
-                    setImage([]);
-                  }}
-                >
-                  <Image
-                    style={{ width: 35, height: 35 }}
-                    source={require("../../../../assets/delete.png")}
-                  />
-                </TouchableOpacity>
-              ) : (
-                <TouchableOpacity
-                  style={{
-                    position: "absolute",
-                    width: 25,
-                    height: 25,
-                    bottom: 14,
-                    right: -12.5,
-                  }}
-                  onPress={() => {
-                    pickImage();
-                  }}
-                >
-                  <Image
-                    style={{ width: 25, height: 25 }}
-                    source={require("../../../../assets/add.png")}
-                  />
-                </TouchableOpacity>
-              )}
+            <View style={{ backgroundColor: "#F6F6F6", borderRadius: 16 }}>
+              <Image
+                source={{ uri: image[0] }}
+                style={{ width: 120, height: 120, borderRadius: 16 }}
+              />
             </View>
           </View>
           <View
@@ -215,7 +125,7 @@ export const ProfileScreen = () => {
           </View>
           <FlatList
             style={{ paddingLeft: 16, paddingRight: 16 }}
-            data={posts}
+            data={sortedTransactions}
             keyExtractor={(_, indx) => indx.toString()}
             renderItem={({ item }) => {
               const { id, photo, photoName, region, length } = item;

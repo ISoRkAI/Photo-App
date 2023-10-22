@@ -27,6 +27,15 @@ import {
   Title,
 } from "./RegistrationScreen.styled";
 import * as ImagePicker from "expo-image-picker";
+import { storage } from "../../../../firebase/config";
+import { nanoid } from "@reduxjs/toolkit";
+import {
+  getDownloadURL,
+  ref,
+  uploadBytes,
+  uploadString,
+} from "@firebase/storage";
+import { useEffect } from "react";
 
 const initialState = {
   email: "",
@@ -40,10 +49,16 @@ export default RegistrationScreen = ({ navigation }) => {
   const [keyboardStatus, setKeyboardStatus] = useState(false);
   const [secureText, setSecureText] = useState(true);
   const [image, setImage] = useState(null);
+  const [idRef, setIdRef] = useState(nanoid());
 
   const dispatch = useDispatch();
 
-  const SigInUser = () => {
+  useEffect(() => {
+    const id = nanoid();
+    setIdRef(id);
+  }, []);
+
+  const SigInUser = async () => {
     if (state.login !== "" && state.email !== "" && state.password !== "") {
       dispatch(authSignUpUser(state));
       setState(initialState);
@@ -66,14 +81,35 @@ export default RegistrationScreen = ({ navigation }) => {
       quality: 1,
     });
 
-    console.log(result);
-
     if (!result.canceled) {
+      setImage(result.assets[0].uri);
+      await uploadAvatarToServer(result.assets[0].uri);
+      await downloadUrl();
+    }
+  };
+
+  const uploadAvatarToServer = async (e) => {
+    try {
+      const storageRef = ref(storage, `avatar/${idRef}`);
+      const response = await fetch(e);
+      const file = await response.blob();
+
+      await uploadBytes(storageRef, file);
+    } catch (e) {
+      console.log("error PhotoToServer", e);
+    }
+  };
+  const downloadUrl = async () => {
+    try {
+      const storageRef = ref(storage, `avatar/${idRef}`);
+      const processedPhoto = await getDownloadURL(storageRef);
+
       setState((prevState) => ({
         ...prevState,
-        imageAvatar: result.assets[0].uri,
+        imageAvatar: processedPhoto,
       }));
-      setImage(result.assets[0].uri);
+    } catch (e) {
+      console.log("error downloadUrl", e);
     }
   };
 

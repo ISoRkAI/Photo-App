@@ -61,6 +61,7 @@ export const DefaultScreen = ({ navigation, route }) => {
       const photo = await uploadPhotoToServer();
       const createPost = await addDoc(collection(db, "posts"), {
         photo,
+        date: +new Date(),
         photoName,
         region,
         userId,

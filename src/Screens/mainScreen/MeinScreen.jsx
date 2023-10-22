@@ -1,59 +1,51 @@
+import { useEffect, useState } from "react";
 import { Platform } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+
+import { doc, setDoc } from "@firebase/firestore";
+
 import { Feather } from "@expo/vector-icons";
 
-const Tab = createBottomTabNavigator();
+import {
+  selectorAvatar,
+  selectorLogin,
+  selectorUserId,
+} from "../../redux/selectors";
+import { db } from "../../../firebase/config";
 
 import { PostsScreen } from "./PostsScreen/PostsScreen";
 import { CreatePostsScreen } from "./CreatePostsScreen/CreatePostsScreen.jsx";
 import { ProfileScreen } from "./ProfileScreen/ProfileScreen.jsx";
 import { authSignOutUser } from "../../redux/auth/authOperations.js";
 import { BtnExit, BtnGrid, BtnPlus, BtnUser } from "./MeinScreen.styled";
-import {
-  selectorAvatar,
-  selectorLogin,
-  selectorUserId,
-} from "../../redux/selectors";
-import { nanoid } from "@reduxjs/toolkit";
-import { getDownloadURL, ref, uploadBytes } from "@firebase/storage";
-import { db, storage } from "../../../firebase/config";
-import { addDoc, collection, doc, setDoc } from "@firebase/firestore";
-import { useEffect } from "react";
+
+const Tab = createBottomTabNavigator();
 
 export const MainScreen = ({ route }) => {
-  const screenOpen = route.params?.screenOpen;
+  const [avatarUrl, setAvatarUrl] = useState(useSelector(selectorAvatar));
+
   const dispatch = useDispatch();
 
-  const avatarUrl = useSelector(selectorAvatar);
   const userId = useSelector(selectorUserId);
   const login = useSelector(selectorLogin);
+  console.log(login);
+  const screenOpen = route.params?.screenOpen;
 
   useEffect(() => {
     if (!!avatarUrl) {
-      uploadPostToServer();
+      console.log(1);
+      uploadPostToServer(avatarUrl);
+      setAvatarUrl(null);
+      return;
     }
+    console.log(2);
   }, []);
 
-  const uploadAvatarToServer = async () => {
+  const uploadPostToServer = async (avatarUrl) => {
     try {
-      const id = nanoid();
-      const storageRef = ref(storage, `avatar/${id}`);
-      const response = await fetch(avatarUrl);
-      const blob = await response.blob();
-      await uploadBytes(storageRef, blob);
-      const processedPhoto = await getDownloadURL(storageRef);
-      return processedPhoto;
-    } catch (error) {
-      console.log("error PhotoToServer", error);
-    }
-  };
-
-  const uploadPostToServer = async () => {
-    try {
-      const photo = await uploadAvatarToServer();
       await setDoc(doc(db, "avatars", `${userId}`), {
-        photo,
+        photo: avatarUrl,
         userId,
         login,
       });
@@ -65,7 +57,7 @@ export const MainScreen = ({ route }) => {
   const signOut = () => {
     dispatch(authSignOutUser());
   };
-
+  console.log("avatarUrl", avatarUrl);
   return (
     <Tab.Navigator
       screenOptions={{

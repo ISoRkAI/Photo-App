@@ -5,17 +5,15 @@ import { initializeApp } from "@firebase/app";
 import { getStorage } from "@firebase/storage";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAZsD_b1MaTrotTDmAas86_JEB9IX7mkpY",
-  authDomain: "photomessenge-b1e0f.firebaseapp.com",
-  databaseURL: "https://photomessenge-b1e0f-default-rtdb.firebaseio.com",
-  projectId: "photomessenge-b1e0f",
-  storageBucket: "photomessenge-b1e0f.appspot.com",
-  messagingSenderId: "630119530641",
-  appId: "1:630119530641:web:47e84b5b94d3ebc57cff30",
-  measurementId: "G-RJJE0H4KX7",
+  apiKey: "AIzaSyCRL_RQVv6yDGr3_tG5304o4T3hzxmjLEQ",
+  authDomain: "test1-9c35e.firebaseapp.com",
+  projectId: "test1-9c35e",
+  storageBucket: "test1-9c35e.appspot.com",
+  messagingSenderId: "506252793210",
+  appId: "1:506252793210:web:209ed9485c49ac2879b2c3",
+  measurementId: "G-BEMQZP4J0M",
 };
-// databaseURL: "https://goitproject-reactnative-default-rtdb.firebaseio.com",
-// Initialize Firebase
+
 const app = initializeApp(firebaseConfig);
 const auth = initializeAuth(app, {
   persistence: getReactNativePersistence(AsyncStorage),

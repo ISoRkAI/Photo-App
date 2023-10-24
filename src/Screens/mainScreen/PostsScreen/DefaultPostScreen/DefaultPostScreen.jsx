@@ -7,13 +7,21 @@ import { Feather } from "@expo/vector-icons";
 
 export const DefaultPostsScreen = ({ navigation }) => {
   const [posts, setPosts] = useState([]);
-  const commentsLength = [];
+  const [userAvatar, setUserAvatar] = useState([]);
 
   useEffect(() => {
+    getUserAvatar();
     getAllPost();
   }, []);
 
-  const getAllPost = async () => {
+  const getUserAvatar = () => {
+    const queryAvatar = query(collection(db, "avatars"));
+    onSnapshot(queryAvatar, (data) => {
+      setUserAvatar(data.docs.map((doc) => doc.data()));
+    });
+  };
+
+  const getAllPost = () => {
     const queryPosts = query(collection(db, "posts"));
     onSnapshot(queryPosts, (data) => {
       setPosts(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
@@ -23,16 +31,46 @@ export const DefaultPostsScreen = ({ navigation }) => {
   const sortedTransactions = [...posts].sort(
     (a, b) => new Date(b.date) - new Date(a.date)
   );
-
+  console.log(userAvatar);
   return (
     <View style={styles.container}>
       <FlatList
         data={sortedTransactions}
         keyExtractor={(_, indx) => indx.toString()}
         renderItem={({ item }) => {
-          const { id, photo, photoName, region, length } = item;
+          const { id, photo, photoName, region, length, userId } = item;
+          const avatar = userAvatar.find((item) => item.userId === userId);
+
           return (
             <View style={{ marginBottom: 34 }}>
+              <View
+                style={{
+                  marginBottom: 32,
+                  flexDirection: "row",
+                  alignItems: "center",
+                }}
+              >
+                <Image
+                  source={{ uri: avatar.photo }}
+                  style={{
+                    width: 60,
+                    height: 60,
+                    borderRadius: 16,
+                    marginRight: 8,
+                  }}
+                />
+                <Text
+                  style={{
+                    color: "#212121",
+
+                    // fontFamily: "Roboto",
+                    fontSize: 13,
+                    fontWeight: "700",
+                  }}
+                >
+                  {avatar.login}
+                </Text>
+              </View>
               <Image source={{ uri: photo }} style={styles.postPhoto} />
               <Text
                 style={{
@@ -75,29 +113,31 @@ export const DefaultPostsScreen = ({ navigation }) => {
                     {length}
                   </Text>
                 </TouchableOpacity>
-                <TouchableOpacity
-                  style={{ flexDirection: "row", alignItems: "center" }}
-                  onPress={() => {
-                    navigation.navigate("MainScreen", { screenOpen: true });
-                    navigation.navigate("Карта", { location: region });
-                  }}
-                >
-                  <Feather
-                    name="map-pin"
-                    size={24}
-                    color="#BDBDBD"
-                    style={{ marginRight: 4 }}
-                  />
-                  <Text
-                    style={{
-                      color: "#212121",
-                      fontSize: 16,
-                      textDecorationLine: "underline",
+                {region && (
+                  <TouchableOpacity
+                    style={{ flexDirection: "row", alignItems: "center" }}
+                    onPress={() => {
+                      navigation.navigate("MainScreen", { screenOpen: true });
+                      navigation.navigate("Карта", { location: region });
                     }}
                   >
-                    {region?.country}, {region?.region}
-                  </Text>
-                </TouchableOpacity>
+                    <Feather
+                      name="map-pin"
+                      size={24}
+                      color="#BDBDBD"
+                      style={{ marginRight: 4 }}
+                    />
+                    <Text
+                      style={{
+                        color: "#212121",
+                        fontSize: 16,
+                        textDecorationLine: "underline",
+                      }}
+                    >
+                      {region?.country}, {region?.region}
+                    </Text>
+                  </TouchableOpacity>
+                )}
               </View>
             </View>
           );

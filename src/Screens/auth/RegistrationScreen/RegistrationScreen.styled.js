@@ -20,13 +20,23 @@ export const ContainerForm = styled.View`
   margin-bottom: ${(p) => (p.keyboardStatus ? -200 : 0)}px;
 `;
 
+export const AvatarContainer = styled.View`
+  position: absolute;
+  top: -60px;
+  border-radius: 16px;
+`;
+
 export const Avatar = styled.Image`
-  /* position: absolute; */
   width: 120px;
   height: 120px;
-  /* top: -60px; */
-  /* background-color: #f6f6f6; */
-  /* border-radius: 16px; */
+  border-radius: 16px;
+`;
+
+export const BlockPlug = styled.View`
+  width: 120px;
+  height: 120px;
+  border-radius: 16px;
+  background-color: #f6f6f6;
 `;
 
 export const PlusBtn = styled.TouchableOpacity`
@@ -35,6 +45,12 @@ export const PlusBtn = styled.TouchableOpacity`
   height: 25px;
   bottom: 14px;
   right: -12.5px;
+`;
+
+export const DeleteBtn = styled.TouchableOpacity`
+  position: absolute;
+  bottom: 6px;
+  right: -20px;
 `;
 
 export const PlusImg = styled.Image`

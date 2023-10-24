@@ -1,12 +1,8 @@
 import { useEffect, useState } from "react";
 import { Keyboard, TouchableWithoutFeedback } from "react-native";
 import { Feather } from "@expo/vector-icons";
-import { nanoid } from "@reduxjs/toolkit";
 import { useSelector } from "react-redux";
 
-import { db, storage } from "../../../../../firebase/config";
-import { getDownloadURL, ref, uploadBytes } from "@firebase/storage";
-import { addDoc, collection } from "@firebase/firestore";
 import {
   ClearBtn,
   Container,
@@ -20,6 +16,8 @@ import {
   PublishBtnText,
 } from "./DefaultScreen.styled";
 import { PhotoContainer } from "./PhotoContainer/PhotoContainer";
+import { uploadPostToServer } from "../../../../../firebase/firebaseOperations";
+import { Loader } from "../../../../components/Loader/Loader";
 
 export const DefaultScreen = ({ navigation, route }) => {
   const [_, setKeyboardStatus] = useState();
@@ -27,13 +25,13 @@ export const DefaultScreen = ({ navigation, route }) => {
   const [goCamera, setGoCamera] = useState(true);
   const [photo, setPhoto] = useState(null);
   const [region, setRegion] = useState(null);
+  const [loading, setLoading] = useState(false);
   const { userId, login } = useSelector((state) => state.auth.user);
 
   useEffect(() => {
     if (!route.params) {
       return;
     }
-
     setRegion({ ...route.params.region[0], ...route.params.coordinates });
   }, [route]);
 
@@ -42,53 +40,30 @@ export const DefaultScreen = ({ navigation, route }) => {
     Keyboard.dismiss();
   };
 
-  const uploadPhotoToServer = async () => {
-    try {
-      const id = nanoid();
-      const storageRef = ref(storage, `photos/${id}`);
-      const response = await fetch(photo);
-      const blob = await response.blob();
-      await uploadBytes(storageRef, blob);
-      const processedPhoto = await getDownloadURL(storageRef);
-      return processedPhoto;
-    } catch (error) {
-      console.log("error PhotoToServer", error);
-    }
-  };
-
-  const uploadPostToServer = async () => {
-    try {
-      const photo = await uploadPhotoToServer();
-      const createPost = await addDoc(collection(db, "posts"), {
-        photo,
-        date: +new Date(),
-        photoName,
-        region,
-        userId,
-        login,
-        length: 0,
-      });
-      return createPost;
-    } catch (e) {
-      console.error("Error adding document: ", e);
-    }
-  };
-
-  const sendPhoto = () => {
-    navigation.navigate("Публикации");
-    uploadPostToServer();
-    setPhoto(null);
-    setPhotoName("");
-    setRegion(null);
-    setGoCamera(true);
-  };
-
   const clearPhoto = () => {
     setGoCamera(true);
     setPhoto(null);
     setPhotoName("");
     setRegion(null);
   };
+
+  const sendPhoto = async () => {
+    setLoading(true);
+    await uploadPostToServer(photo, photoName, region, userId, login).then(
+      () => {
+        setPhoto(null);
+        setPhotoName("");
+        setRegion(null);
+        setGoCamera(true);
+        setLoading(false);
+        navigation.navigate("Публикации");
+      }
+    );
+  };
+
+  if (loading) {
+    return <Loader />;
+  }
 
   return (
     <TouchableWithoutFeedback onPress={keyboardHide}>
@@ -116,7 +91,7 @@ export const DefaultScreen = ({ navigation, route }) => {
             color="#BDBDBD"
             style={{ marginRight: 4 }}
           />
-          {region ? (
+          {!!region ? (
             <MapBtnText>
               {region?.country}, {region.city}, {region.name}
             </MapBtnText>

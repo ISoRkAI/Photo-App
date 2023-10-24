@@ -29,17 +29,14 @@ export const MainScreen = ({ route }) => {
 
   const userId = useSelector(selectorUserId);
   const login = useSelector(selectorLogin);
-  console.log(login);
   const screenOpen = route.params?.screenOpen;
 
   useEffect(() => {
     if (!!avatarUrl) {
-      console.log(1);
       uploadPostToServer(avatarUrl);
       setAvatarUrl(null);
       return;
     }
-    console.log(2);
   }, []);
 
   const uploadPostToServer = async (avatarUrl) => {
@@ -57,7 +54,7 @@ export const MainScreen = ({ route }) => {
   const signOut = () => {
     dispatch(authSignOutUser());
   };
-  console.log("avatarUrl", avatarUrl);
+
   return (
     <Tab.Navigator
       screenOptions={{
@@ -104,6 +101,7 @@ export const MainScreen = ({ route }) => {
       />
       <Tab.Screen
         options={{
+          tabBarStyle: { display: screenOpen ? "none" : "" },
           headerShown: false,
           tabBarIcon: ({ focused, color }) => (
             <BtnUser>

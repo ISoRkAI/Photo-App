@@ -1,14 +1,17 @@
 import { useEffect, useState } from "react";
+import { ActivityIndicator, StyleSheet, View } from "react-native";
 import MapView, { Marker } from "react-native-maps";
+
 import * as Location from "expo-location";
 
-import { Loader } from "../../../../components/Loader/Loader";
-
-import { Container } from "./MapScreen.styled";
-
-export default MapScreen = ({ navigation }) => {
+export default MapProfileScreen = ({ navigation, route }) => {
   const [coordinates, setCoordinates] = useState(null);
-  const [region, setRegion] = useState(null);
+
+  useEffect(() => {
+    navigation.addListener("transitionStart", () => {
+      navigation.navigate("MainScreen", { screenOpen: false });
+    });
+  }, [navigation]);
 
   useEffect(() => {
     (async () => {
@@ -18,22 +21,13 @@ export default MapScreen = ({ navigation }) => {
           setErrorMsg("Permission to access location was denied");
           return;
         }
-
-        const location = await Location.getCurrentPositionAsync();
-
-        const { latitude, longitude } = location.coords;
+        const { latitude, longitude } = route.params.location;
 
         const coords = {
           latitude: latitude,
           longitude: longitude,
         };
         setCoordinates(coords);
-
-        const regionName = await Location.reverseGeocodeAsync({
-          longitude: longitude,
-          latitude: latitude,
-        });
-        setRegion(regionName);
       } catch (error) {
         console.log("Error Location: ", error.message);
       }
@@ -41,15 +35,15 @@ export default MapScreen = ({ navigation }) => {
   }, []);
 
   if (!coordinates) {
-    return <Loader />;
+    return (
+      <View style={[styles.container, styles.horizontal]}>
+        <ActivityIndicator size="large" color="#FF6C00" />
+      </View>
+    );
   }
 
-  navigation.addListener("transitionStart", () => {
-    navigation.navigate("Создать публикацию", { region, coordinates });
-  });
-
   return (
-    <Container>
+    <View style={styles.container}>
       <MapView
         style={{ flex: 1 }}
         initialRegion={{
@@ -67,6 +61,18 @@ export default MapScreen = ({ navigation }) => {
           title={"photo travel"}
         />
       </MapView>
-    </Container>
+    </View>
   );
 };
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: "center",
+    backgroundColor: "#ffffff",
+  },
+  horizontal: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    padding: 10,
+  },
+});

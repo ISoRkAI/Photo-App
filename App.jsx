@@ -7,6 +7,7 @@ import * as SplashScreen from "expo-splash-screen";
 
 import { store } from "./src/redux/store";
 import Main from "./src/components/Main";
+import Toast from "react-native-toast-message";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -29,6 +30,7 @@ export default function App() {
     <Provider store={store}>
       <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
         <Main />
+        <Toast />
       </View>
     </Provider>
   );

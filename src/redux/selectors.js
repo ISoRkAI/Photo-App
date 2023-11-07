@@ -3,3 +3,4 @@ export const isLoading = (state) => state.auth.isLoading;
 export const selectorLogin = (state) => state.auth.user.login;
 export const selectorUserId = (state) => state.auth.user.userId;
 export const selectorAvatar = (state) => state.auth.user.imageAvatar;
+export const selectorErrorAuth = (state) => state.auth.error;

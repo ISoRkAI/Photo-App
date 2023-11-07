@@ -11,6 +11,7 @@ import {
   PlusBtn,
   PlusImg,
 } from "../RegistrationScreen.styled";
+import { uploadAvatarToStorage } from "../../../../../firebase/firebaseOperations";
 
 export const AvatarPhoto = ({ image, setImage, setUploadAvatar, idRef }) => {
   const pickImage = async () => {
@@ -23,27 +24,10 @@ export const AvatarPhoto = ({ image, setImage, setUploadAvatar, idRef }) => {
 
     if (!result.canceled) {
       setImage(result.assets[0].uri);
-      await uploadAvatarToServer(result.assets[0].uri);
+      await uploadAvatarToStorage(result.assets[0].uri, idRef, setUploadAvatar);
     }
   };
 
-  const uploadAvatarToServer = async (e) => {
-    try {
-      const storageRef = ref(storage, `avatar/${idRef}`);
-      const response = await fetch(e);
-      const file = await response.blob();
-      const metadata = {
-        contentType: "image/jpeg",
-      };
-
-      await uploadBytesResumable(storageRef, file, metadata);
-
-      setUploadAvatar(true);
-    } catch (e) {
-      setUploadAvatar(false);
-      console.log("error PhotoToServer", e);
-    }
-  };
   return (
     <AvatarContainer>
       {image ? <Avatar source={{ uri: image }} /> : <BlockPlug></BlockPlug>}

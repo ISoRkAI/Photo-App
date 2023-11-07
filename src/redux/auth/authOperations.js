@@ -6,13 +6,12 @@ import {
   signInWithEmailAndPassword,
   updateProfile,
 } from "@firebase/auth";
+import Toast from "react-native-toast-message";
 
 export const authSignUpUser = createAsyncThunk(
   "auth / signUp ",
   async ({ login, email, password, imageAvatar }, ThunkAPI) => {
     try {
-      console.log("imageAvatar", imageAvatar);
-      console.log("auth.currentUser", auth.currentUser);
       await createUserWithEmailAndPassword(auth, email, password);
       await updateProfile(auth.currentUser, {
         displayName: login,
@@ -20,7 +19,7 @@ export const authSignUpUser = createAsyncThunk(
       });
 
       const user = auth.currentUser;
-      console.log("user", user);
+
       const userUpdateProfile = {
         userId: user.uid,
         login: user.displayName,
@@ -30,7 +29,28 @@ export const authSignUpUser = createAsyncThunk(
       };
       return userUpdateProfile;
     } catch (e) {
-      console.log("Error authSignUpUser:", e);
+      if (e.message === "Firebase: Error (auth/email-already-in-use).") {
+        Toast.show({
+          type: "error",
+          text1:
+            "Sorry, this email address is already registered in the system",
+        });
+      }
+      if (e.message === "Firebase: Error (auth/invalid-email).") {
+        Toast.show({
+          type: "error",
+          text1: "The email address entered is invalid",
+        });
+      }
+      if (
+        e.message ===
+        "Firebase: Password should be at least 6 characters (auth/weak-password)."
+      ) {
+        Toast.show({
+          type: "error",
+          text1: "Password should be at least 6 characters",
+        });
+      }
       return ThunkAPI.rejectWithValue(e.message);
     }
   }
@@ -52,6 +72,15 @@ export const authSignInUser = createAsyncThunk(
 
       return userUpdateProfile;
     } catch (e) {
+      if (
+        e.message === "Firebase: Error (auth/invalid-login-credentials)." ||
+        "Firebase: Error (auth/invalid-email)."
+      ) {
+        Toast.show({
+          type: "error",
+          text1: "Wrong login or password",
+        });
+      }
       return ThunkAPI.rejectWithValue(e.message);
     }
   }

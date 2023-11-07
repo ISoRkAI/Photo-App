@@ -2,9 +2,6 @@ import { useEffect, useState } from "react";
 import { Platform } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-
-import { doc, setDoc } from "@firebase/firestore";
-
 import { Feather } from "@expo/vector-icons";
 
 import {
@@ -12,13 +9,13 @@ import {
   selectorLogin,
   selectorUserId,
 } from "../../redux/selectors";
-import { db } from "../../../firebase/config";
 
 import { PostsScreen } from "./PostsScreen/PostsScreen";
 import { CreatePostsScreen } from "./CreatePostsScreen/CreatePostsScreen.jsx";
 import { ProfileScreen } from "./ProfileScreen/ProfileScreen.jsx";
 import { authSignOutUser } from "../../redux/auth/authOperations.js";
 import { BtnExit, BtnGrid, BtnPlus, BtnUser } from "./MeinScreen.styled";
+import { uploadAvatarToServer } from "../../../firebase/firebaseOperations.js";
 
 const Tab = createBottomTabNavigator();
 
@@ -33,23 +30,11 @@ export const MainScreen = ({ route }) => {
 
   useEffect(() => {
     if (!!avatarUrl) {
-      uploadPostToServer(avatarUrl);
+      uploadAvatarToServer(avatarUrl, login, userId);
       setAvatarUrl(null);
       return;
     }
   }, []);
-
-  const uploadPostToServer = async (avatarUrl) => {
-    try {
-      await setDoc(doc(db, "avatars", `${userId}`), {
-        photo: avatarUrl,
-        userId,
-        login,
-      });
-    } catch (e) {
-      console.error("Error adding document: ", e);
-    }
-  };
 
   const signOut = () => {
     dispatch(authSignOutUser());

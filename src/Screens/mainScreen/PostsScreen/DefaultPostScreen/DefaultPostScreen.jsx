@@ -31,7 +31,7 @@ export const DefaultPostsScreen = ({ navigation }) => {
   const sortedTransactions = [...posts].sort(
     (a, b) => new Date(b.date) - new Date(a.date)
   );
-  console.log(userAvatar);
+
   return (
     <View style={styles.container}>
       <FlatList

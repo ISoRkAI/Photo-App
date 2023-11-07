@@ -43,7 +43,7 @@ export const Input = styled.TextInput`
 
 export const ShowBtn = styled.TouchableOpacity`
   position: absolute;
-  top: ${Platform.OS === "ios" ? 16 : -42}px;
+  top: ${Platform.OS === "ios" ? 16 : 22}px;
   right: 32px;
 `;
 

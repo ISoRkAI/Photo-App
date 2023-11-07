@@ -61,7 +61,7 @@ export const CommentScreen = ({ route, navigation }) => {
   const login = useSelector(selectorLogin);
 
   const { postId, uri } = route.params;
-  console.log(postId, uri);
+
   const screenHeight = Dimensions.get("window").width;
   const widthCommentBlock = screenHeight - 76;
 

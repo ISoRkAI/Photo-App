@@ -7,12 +7,10 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
-
+import Toast from "react-native-toast-message";
 import { nanoid } from "@reduxjs/toolkit";
-import { getDownloadURL, ref } from "@firebase/storage";
-import { authSignUpUser } from "../../../redux/auth/authOperations";
 
-import { storage } from "../../../../firebase/config";
+import { authSignUpUser } from "../../../redux/auth/authOperations";
 
 import {
   Container,
@@ -29,6 +27,7 @@ import {
   Title,
 } from "./RegistrationScreen.styled";
 import { AvatarPhoto } from "./AvatarPhoto/AvatarPhoto";
+import { downloadUrl } from "../../../../firebase/firebaseOperations";
 
 const initialState = {
   email: "",
@@ -53,7 +52,7 @@ export default RegistrationScreen = ({ navigation }) => {
 
   useEffect(() => {
     if (uploadAvatar) {
-      downloadUrl();
+      downloadUrl(idRef, setState);
       return;
     }
   }, [uploadAvatar]);
@@ -69,27 +68,13 @@ export default RegistrationScreen = ({ navigation }) => {
       setState(initialState);
     } else {
       setKeyboardStatus(false);
-      console.log("Fill in all the fields!!!");
+      Toast.show({ type: "error", text1: "Fill in all the fields!!!" });
     }
   };
 
   const keyboardHide = () => {
     setKeyboardStatus(false);
     Keyboard.dismiss();
-  };
-
-  const downloadUrl = async () => {
-    try {
-      const storageRef = ref(storage, `avatar/${idRef}`);
-      const processedPhoto = await getDownloadURL(storageRef);
-
-      setState((prevState) => ({
-        ...prevState,
-        imageAvatar: processedPhoto,
-      }));
-    } catch (e) {
-      console.log("error downloadUrl", e);
-    }
   };
 
   return (

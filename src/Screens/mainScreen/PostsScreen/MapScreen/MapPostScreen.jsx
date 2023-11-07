@@ -3,6 +3,7 @@ import { ActivityIndicator, StyleSheet, View } from "react-native";
 import MapView, { Marker } from "react-native-maps";
 
 import * as Location from "expo-location";
+import { Container } from "./MapPostScreen.styled";
 
 export default MapScreen = ({ navigation, route }) => {
   const [coordinates, setCoordinates] = useState(null);
@@ -43,7 +44,7 @@ export default MapScreen = ({ navigation, route }) => {
   }
 
   return (
-    <View style={styles.container}>
+    <Container>
       <MapView
         style={{ flex: 1 }}
         initialRegion={{
@@ -61,9 +62,10 @@ export default MapScreen = ({ navigation, route }) => {
           title={"photo travel"}
         />
       </MapView>
-    </View>
+    </Container>
   );
 };
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,

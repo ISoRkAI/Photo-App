@@ -1,7 +1,16 @@
 import { getDownloadURL, ref, uploadBytesResumable } from "@firebase/storage";
 import { nanoid } from "@reduxjs/toolkit";
 import { db, storage } from "./config";
-import { addDoc, collection, doc, setDoc } from "@firebase/firestore";
+import {
+  addDoc,
+  collection,
+  doc,
+  onSnapshot,
+  query,
+  setDoc,
+  updateDoc,
+  where,
+} from "@firebase/firestore";
 
 export const uploadPhotoToServer = async (photoUrl) => {
   try {
@@ -87,4 +96,73 @@ export const uploadAvatarToServer = async (avatarUrl, login, userId) => {
   } catch (e) {
     console.error("Error adding document: ", e);
   }
+};
+
+export const createComment = async (
+  allComments,
+  postId,
+  comment,
+  login,
+  recordsLengthComments,
+  getCommentTime
+) => {
+  await addDoc(collection(db, "posts", postId, "comment"), {
+    comment,
+    nickName: login,
+    time: getCommentTime().toString(),
+    date: +new Date(),
+  });
+  recordsLengthComments(postId, allComments);
+};
+
+export const getAllComment = async (postId, setAllComments) => {
+  const queryComments = query(collection(db, "posts", postId, "comment"));
+  onSnapshot(queryComments, (data) => {
+    setAllComments(data.docs.map((doc) => doc.data()));
+  });
+};
+
+export const getAllAvatarImg = async (setAllAvatar) => {
+  const queryAvatar = query(collection(db, "avatars"));
+  onSnapshot(queryAvatar, (data) => {
+    setAllAvatar(data.docs.map((doc) => doc.data()));
+  });
+};
+
+export const recordsLengthComments = async (postId, allComments) => {
+  const frankDocRef = doc(db, "posts", postId);
+  await updateDoc(frankDocRef, {
+    length: Number(allComments.length) + 1,
+  });
+};
+
+export const getUserAvatar = (setUserAvatar) => {
+  const queryAvatar = query(collection(db, "avatars"));
+  onSnapshot(queryAvatar, (data) => {
+    setUserAvatar(data.docs.map((doc) => doc.data()));
+  });
+};
+
+export const getAllPost = (setPosts) => {
+  const queryPosts = query(collection(db, "posts"));
+  onSnapshot(queryPosts, (data) => {
+    setPosts(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
+  });
+};
+
+export const getUserPost = async (id, setPosts) => {
+  const queryPosts = query(collection(db, "posts"), where("userId", "==", id));
+  onSnapshot(queryPosts, (data) => {
+    setPosts(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
+  });
+};
+
+export const getProfileAvatar = async (id, setImage) => {
+  const queryAvatar = query(
+    collection(db, "avatars"),
+    where("userId", "==", id)
+  );
+  onSnapshot(queryAvatar, (data) => {
+    setImage(data.docs.map((doc) => doc.data().photo));
+  });
 };

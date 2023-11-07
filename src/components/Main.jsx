@@ -4,7 +4,7 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 
 import { AuthScreen } from "../Screens/auth/authScreen";
-import { MainScreen } from "../Screens/mainScreen/MeinScreen";
+import { MainScreen } from "../Screens/mainScreen/MainScreen";
 import { authStateChangeUser } from "../redux/auth/authOperations";
 import { isLogIn } from "../redux/selectors";
 

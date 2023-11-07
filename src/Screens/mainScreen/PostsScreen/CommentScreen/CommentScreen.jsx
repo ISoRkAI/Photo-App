@@ -1,41 +1,34 @@
-import { Feather } from "@expo/vector-icons";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   Dimensions,
-  Image,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+  FlatList,
+  Keyboard,
+  TouchableWithoutFeedback,
 } from "react-native";
 import { useSelector } from "react-redux";
-import { selectorLogin, selectorUserId } from "../../../../redux/selectors";
-import { db } from "../../../../../firebase/config";
+import { Feather } from "@expo/vector-icons";
+
+import { selectorLogin } from "../../../../redux/selectors";
 import {
-  addDoc,
-  collection,
-  doc,
-  onSnapshot,
-  query,
-  updateDoc,
-} from "@firebase/firestore";
-import { useState } from "react";
-import { FlatList } from "react-native";
-import { KeyboardAvoidingView } from "react-native";
-import { Platform } from "react-native";
-import { TouchableWithoutFeedback } from "react-native";
-import { Keyboard } from "react-native";
-import {
+  AddBtn,
   AvatarPhoto,
   AvatarPhotoContainer,
   CommentBlock,
   CommentContainer,
   CommentText,
   Container,
+  Input,
   PostImage,
+  TextInputContainer,
   TimeContainer,
   TimeText,
 } from "./CommentScreen.styled";
+import {
+  createComment,
+  getAllAvatarImg,
+  getAllComment,
+  recordsLengthComments,
+} from "../../../../../firebase/firebaseOperations";
 
 const optionsMonth = [
   "Січня",
@@ -56,12 +49,11 @@ export const CommentScreen = ({ route, navigation }) => {
   const [comment, setComment] = useState("");
   const [allComments, setAllComments] = useState([]);
   const [allAvatar, setAllAvatar] = useState([]);
-  const [keyboardStatus, setKeyboardStatus] = useState(false);
+  const [keyboardWidth, setKeyboardWidth] = useState(0);
 
   const login = useSelector(selectorLogin);
 
   const { postId, uri } = route.params;
-
   const screenHeight = Dimensions.get("window").width;
   const widthCommentBlock = screenHeight - 76;
 
@@ -72,17 +64,40 @@ export const CommentScreen = ({ route, navigation }) => {
   }, [navigation]);
 
   useEffect(() => {
-    getAllAvatarImg();
-    getAllComment();
+    getAllAvatarImg(setAllAvatar);
+    getAllComment(postId, setAllComments);
+  }, []);
+
+  useEffect(() => {
+    const keyboardDidShowListener = Keyboard.addListener(
+      "keyboardDidShow",
+      keyboardDidShow
+    );
+    const keyboardDidHideListener = Keyboard.addListener(
+      "keyboardDidHide",
+      keyboardDidHide
+    );
+
+    return () => {
+      keyboardDidShowListener.remove();
+      keyboardDidHideListener.remove();
+    };
   }, []);
 
   const keyboardHide = () => {
-    setKeyboardStatus(false);
     Keyboard.dismiss();
   };
 
   const addLeadingZero = (e) => {
     return e < 10 ? "0" + e : e;
+  };
+
+  const keyboardDidShow = (frames) => {
+    setKeyboardWidth(frames.endCoordinates.height);
+  };
+
+  const keyboardDidHide = () => {
+    setKeyboardWidth(0);
   };
 
   const getCommentTime = () => {
@@ -95,40 +110,25 @@ export const CommentScreen = ({ route, navigation }) => {
     return `${D} ${M} ${Y} | ${h}:${m}`;
   };
 
-  const createComment = async () => {
-    await addDoc(collection(db, "posts", postId, "comment"), {
-      comment,
-      nickName: login,
-      time: getCommentTime().toString(),
-      date: +new Date(),
-    });
-    recordsLengthComments();
-  };
-
-  const getAllComment = async () => {
-    const queryComments = query(collection(db, "posts", postId, "comment"));
-    onSnapshot(queryComments, (data) => {
-      setAllComments(data.docs.map((doc) => doc.data()));
-    });
-  };
-
-  const getAllAvatarImg = async () => {
-    const queryAvatar = query(collection(db, "avatars"));
-    onSnapshot(queryAvatar, (data) => {
-      setAllAvatar(data.docs.map((doc) => doc.data()));
-    });
-  };
-
-  const recordsLengthComments = async () => {
-    const frankDocRef = doc(db, "posts", postId);
-    await updateDoc(frankDocRef, {
-      length: Number(allComments.length) + 1,
-    });
-  };
-
   const sortedTransactions = [...allComments].sort(
     (a, b) => new Date(b.date) - new Date(a.date)
   );
+
+  const addComment = () => {
+    if (!!comment) {
+      createComment(
+        allComments,
+        postId,
+        comment,
+        login,
+        recordsLengthComments,
+        getCommentTime
+      ),
+        setComment("");
+      return;
+    }
+    return;
+  };
 
   return (
     <TouchableWithoutFeedback onPress={() => keyboardHide()}>
@@ -163,50 +163,21 @@ export const CommentScreen = ({ route, navigation }) => {
             );
           }}
         />
-        <View
-          keyboardStatus={keyboardStatus}
-          style={{
-            position: "absolute",
-            bottom: 32,
-            right: 16,
-            width: "100%",
-            backgroundColor: "#ffffff",
-            justifyContent: "flex-end",
-          }}
-        >
-          <TextInput
+
+        <TextInputContainer keyboardWidth={keyboardWidth}>
+          <Input
             placeholder="Комментировать..."
             onChangeText={(value) => setComment(value)}
             value={comment}
-            style={{
-              width: "100%",
-              height: 50,
-              borderRadius: 50,
-              backgroundColor: "#F6F6F6",
-              borderWidth: 1,
-              borderColor: "#E8E8E8",
-              paddingLeft: 16,
-            }}
-          ></TextInput>
-          <TouchableOpacity
-            style={{
-              position: "absolute",
-              width: 34,
-              height: 34,
-              top: 9,
-              right: 9,
-              borderRadius: "50%",
-              backgroundColor: "#FF6C00",
-              justifyContent: "center",
-              alignItems: "center",
-            }}
+          ></Input>
+          <AddBtn
             onPress={() => {
-              createComment(), setComment("");
+              addComment();
             }}
           >
             <Feather name="arrow-up" size={24} color="#ffffff" />
-          </TouchableOpacity>
-        </View>
+          </AddBtn>
+        </TextInputContainer>
       </Container>
     </TouchableWithoutFeedback>
   );

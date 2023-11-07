@@ -22,6 +22,26 @@ import {
 } from "@firebase/firestore";
 import { useState } from "react";
 import { FlatList } from "react-native";
+import {
+  AddBtn,
+  AvatarPhoto,
+  AvatarPhotoContainer,
+  CommentBlock,
+  CommentContainer,
+  CommentText,
+  Container,
+  Input,
+  PostImage,
+  TextInputContainer,
+  TimeContainer,
+  TimeText,
+} from "./CommentScreen.styled";
+import {
+  createComment,
+  getAllAvatarImg,
+  getAllComment,
+  recordsLengthComments,
+} from "../../../../../firebase/firebaseOperations";
 
 const optionsMonth = [
   "Січня",
@@ -44,7 +64,6 @@ export const CommentProfileScreen = ({ route, navigation }) => {
   const [allAvatar, setAllAvatar] = useState([]);
 
   const login = useSelector(selectorLogin);
-  const id = useSelector(selectorUserId);
 
   const { postId, uri } = route.params;
   const screenHeight = Dimensions.get("window").width;
@@ -57,8 +76,8 @@ export const CommentProfileScreen = ({ route, navigation }) => {
   }, [navigation]);
 
   useEffect(() => {
-    getAllAvatarImg();
-    getAllComment();
+    getAllAvatarImg(setAllAvatar);
+    getAllComment(postId, setAllComments);
   }, []);
 
   const addLeadingZero = (e) => {
@@ -75,59 +94,29 @@ export const CommentProfileScreen = ({ route, navigation }) => {
     return `${D} ${M} ${Y} | ${h}:${m}`;
   };
 
-  const createComment = async () => {
-    await addDoc(collection(db, "posts", postId, "comment"), {
-      comment,
-      nickName: login,
-      time: getCommentTime().toString(),
-      date: +new Date(),
-    });
-    recordsLengthComments();
-  };
-
-  const getAllComment = async () => {
-    const queryComments = query(collection(db, "posts", postId, "comment"));
-    onSnapshot(queryComments, (data) => {
-      setAllComments(data.docs.map((doc) => doc.data()));
-    });
-  };
-
-  const getAllAvatarImg = async () => {
-    const queryAvatar = query(collection(db, "avatars"));
-    onSnapshot(queryAvatar, (data) => {
-      setAllAvatar(data.docs.map((doc) => doc.data()));
-    });
-  };
-
-  const recordsLengthComments = async () => {
-    const frankDocRef = doc(db, "posts", postId);
-    await updateDoc(frankDocRef, {
-      length: Number(allComments.length) + 1,
-    });
-  };
-
   const sortedTransactions = [...allComments].sort(
     (a, b) => new Date(b.date) - new Date(a.date)
   );
 
+  const addComment = () => {
+    if (!!comment) {
+      createComment(
+        allComments,
+        postId,
+        comment,
+        login,
+        recordsLengthComments,
+        getCommentTime
+      ),
+        setComment("");
+      return;
+    }
+    return;
+  };
+
   return (
-    <View
-      style={{
-        flex: 1,
-        paddingHorizontal: 16,
-        paddingTop: 32,
-        backgroundColor: "#ffffff",
-      }}
-    >
-      <Image
-        source={{ uri }}
-        style={{
-          width: "100%",
-          height: 240,
-          borderRadius: 8,
-          marginBottom: 32,
-        }}
-      />
+    <Container>
+      <PostImage source={{ uri }} />
       <FlatList
         data={sortedTransactions}
         keyExtractor={(_, indx) => indx.toString()}
@@ -146,109 +135,39 @@ export const CommentProfileScreen = ({ route, navigation }) => {
           });
 
           return (
-            <View
-              style={{
-                flexDirection: nickName === login ? "row-reverse" : "row",
-                marginBottom: 24,
-              }}
-            >
-              <View
-                style={{
-                  width: 28,
-                  height: 28,
-                  backgroundColor: "#fd9898",
-                  borderRadius: "50%",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  marginRight: nickName === login ? 0 : 16,
-                  marginLeft: nickName === login ? 16 : 0,
-                }}
-              >
-                <Image
-                  source={{ uri: avatar[0] }}
-                  style={{ width: 28, height: 28, borderRadius: 16 }}
-                />
-              </View>
+            <CommentContainer nickName={nickName} login={login}>
+              <AvatarPhotoContainer nickName={nickName} login={login}>
+                <AvatarPhoto source={{ uri: avatar[0] }} />
+              </AvatarPhotoContainer>
 
-              <View
-                style={{
-                  width: widthCommentBlock,
-                  marginBottom: 10,
-                  backgroundColor: "rgba(0, 0, 0, 0.03)",
-                  padding: 16,
-                  borderBottomLeftRadius: nickName === login ? 6 : 0,
-                  borderBottomRightRadius: nickName === login ? 6 : 0,
-                  borderTopLeftRadius: nickName === login ? 6 : 0,
-                  borderTopRightRadius: nickName === login ? 0 : 6,
-                }}
+              <CommentBlock
+                widthCommentBlock={widthCommentBlock}
+                nickName={nickName}
+                login={login}
               >
-                <Text
-                  style={{
-                    marginBottom: 8,
-                    color: "#212121",
-                    fontSize: 13,
-                    lineHeight: 18,
-                  }}
-                >
-                  {comment}
-                </Text>
-                <View style={{ width: "100%", alignItems: "flex-end" }}>
-                  <Text
-                    style={{
-                      color: "#BDBDBD",
-                      fontSize: 10,
-                    }}
-                  >
-                    {time}
-                  </Text>
-                </View>
-              </View>
-            </View>
+                <CommentText>{comment}</CommentText>
+                <TimeContainer>
+                  <TimeText>{time}</TimeText>
+                </TimeContainer>
+              </CommentBlock>
+            </CommentContainer>
           );
         }}
       />
-      <View
-        style={{
-          position: "absolute",
-          bottom: 32,
-          right: 16,
-          width: "100%",
-          justifyContent: "flex-end",
-        }}
-      >
-        <TextInput
+      <TextInputContainer>
+        <Input
           placeholder="Комментировать..."
           onChangeText={(value) => setComment(value)}
           value={comment}
-          style={{
-            width: "100%",
-            height: 50,
-            borderRadius: 50,
-            backgroundColor: "#F6F6F6",
-            borderWidth: 1,
-            borderColor: "#E8E8E8",
-            paddingLeft: 16,
-          }}
-        ></TextInput>
-        <TouchableOpacity
-          style={{
-            position: "absolute",
-            width: 34,
-            height: 34,
-            top: 9,
-            right: 9,
-            borderRadius: "50%",
-            backgroundColor: "#FF6C00",
-            justifyContent: "center",
-            alignItems: "center",
-          }}
+        ></Input>
+        <AddBtn
           onPress={() => {
-            createComment(), setComment("");
+            addComment();
           }}
         >
           <Feather name="arrow-up" size={24} color="#ffffff" />
-        </TouchableOpacity>
-      </View>
-    </View>
+        </AddBtn>
+      </TextInputContainer>
+    </Container>
   );
 };

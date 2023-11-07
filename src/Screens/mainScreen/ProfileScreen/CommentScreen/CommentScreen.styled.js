@@ -68,7 +68,6 @@ export const TimeText = styled.Text`
 export const TextInputContainer = styled.View`
   position: absolute;
   bottom: 0px;
-  bottom: ${(p) => (p.keyboardWidth === 0 ? 32 : p.keyboardWidth)}px;
   right: 16px;
   width: 100%;
   background-color: #ffffff;

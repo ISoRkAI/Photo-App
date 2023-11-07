@@ -8,13 +8,13 @@ import {
   selectorAvatar,
   selectorLogin,
   selectorUserId,
-} from "../../redux/selectors";
+} from "../../redux/selectors.js";
 
-import { PostsScreen } from "./PostsScreen/PostsScreen";
+import { PostsScreen } from "./PostsScreen/PostsScreen.jsx";
 import { CreatePostsScreen } from "./CreatePostsScreen/CreatePostsScreen.jsx";
 import { ProfileScreen } from "./ProfileScreen/ProfileScreen.jsx";
 import { authSignOutUser } from "../../redux/auth/authOperations.js";
-import { BtnExit, BtnGrid, BtnPlus, BtnUser } from "./MeinScreen.styled";
+import { BtnExit, BtnGrid, BtnPlus, BtnUser } from "./MainScreen.styled.js";
 import { uploadAvatarToServer } from "../../../firebase/firebaseOperations.js";
 
 const Tab = createBottomTabNavigator();

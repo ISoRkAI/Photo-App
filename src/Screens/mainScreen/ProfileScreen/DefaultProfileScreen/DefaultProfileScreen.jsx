@@ -1,30 +1,31 @@
-import { Text, View, StyleSheet, TouchableOpacity, Image } from "react-native";
-import { authSignOutUser } from "../../../../redux/auth/authOperations";
-import { useDispatch, useSelector } from "react-redux";
-import {
-  collection,
-  doc,
-  onSnapshot,
-  query,
-  setDoc,
-  updateDoc,
-  where,
-} from "@firebase/firestore";
-import { db, storage } from "../../../../../firebase/config";
-import { selectorLogin, selectorUserId } from "../../../../redux/selectors";
 import { useEffect, useState } from "react";
+import { Text, View, TouchableOpacity, ImageBackground } from "react-native";
+import { useDispatch, useSelector } from "react-redux";
 import { FlatList } from "react-native-gesture-handler";
-import * as ImagePicker from "expo-image-picker";
 import { Feather } from "@expo/vector-icons";
-import { ImageBackground } from "react-native";
-import { ScrollView } from "react-native";
+
+import { authSignOutUser } from "../../../../redux/auth/authOperations";
+import { selectorLogin, selectorUserId } from "../../../../redux/selectors";
 import {
-  getDownloadURL,
-  ref,
-  uploadBytes,
-  uploadString,
-} from "@firebase/storage";
-import { nanoid } from "@reduxjs/toolkit";
+  getProfileAvatar,
+  getUserPost,
+} from "../../../../../firebase/firebaseOperations";
+import {
+  Avatar,
+  AvatarBlock,
+  AvatarContainer,
+  CommentBlock,
+  CommentBtn,
+  CommentLength,
+  Container,
+  ExitBlock,
+  MapBtn,
+  Post,
+  PostContainer,
+  PostName,
+  ProfileContainer,
+  TextLocation,
+} from "./DefaultProfileScreen.styled";
 
 export const DefaultProfileScreen = ({ navigation }) => {
   const [posts, setPosts] = useState([]);
@@ -36,78 +37,48 @@ export const DefaultProfileScreen = ({ navigation }) => {
   const login = useSelector(selectorLogin);
 
   useEffect(() => {
-    getUserPost();
-    getUserAvatar();
+    getUserPost(id, setPosts);
+    getProfileAvatar(id, setImage);
   }, []);
 
   const signOut = () => {
     dispatch(authSignOutUser());
   };
 
-  const getUserPost = async () => {
-    const queryPosts = query(
-      collection(db, "posts"),
-      where("userId", "==", id)
-    );
-    onSnapshot(queryPosts, (data) => {
-      setPosts(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
-    });
-  };
-
-  const getUserAvatar = async () => {
-    const queryAvatar = query(
-      collection(db, "avatars"),
-      where("userId", "==", id)
-    );
-    onSnapshot(queryAvatar, (data) => {
-      setImage(data.docs.map((doc) => doc.data().photo));
-    });
-  };
-
   const sortedTransactions = [...posts].sort(
     (a, b) => new Date(b.date) - new Date(a.date)
   );
 
+  const goToComments = (id, photo) => {
+    navigation.navigate("MainScreen", { screenOpen: true });
+    navigation.navigate("Комментарии", {
+      postId: id,
+      uri: photo,
+    });
+  };
+
+  const goToMap = (region) => {
+    navigation.navigate("MainScreen", { screenOpen: true });
+    navigation.navigate("Карта", { location: region });
+  };
+
   return (
-    <View style={{ flex: 1, backgroundColor: "#932525" }}>
+    <Container>
       <ImageBackground
         style={{ flex: 1, justifyContent: "flex-end", paddingTop: 146 }}
         source={require("../../../../../assets/PhotoBG.png")}
       >
-        <View
-          style={{
-            width: "100%",
-            height: "100%",
-            backgroundColor: "#ffffff",
-            borderTopLeftRadius: 25,
-            borderTopRightRadius: 25,
-            // alignItems: "center",
-            paddingTop: 22,
-          }}
-        >
-          <View
-            style={{
-              width: "100%",
-              position: "absolute",
-              top: -60,
-              borderRadius: 16,
-              alignItems: "center",
-            }}
-          >
-            <View style={{ backgroundColor: "#F6F6F6", borderRadius: 16 }}>
-              <Image
-                source={{ uri: image[0] }}
-                style={{ width: 120, height: 120, borderRadius: 16 }}
-              />
-            </View>
-          </View>
-          <View
-            style={{ marginBottom: 46, marginRight: 16, marginLeft: "auto" }}
-          >
+        <ProfileContainer>
+          <AvatarContainer>
+            <AvatarBlock>
+              <Avatar source={{ uri: image[0] }} />
+            </AvatarBlock>
+          </AvatarContainer>
+          <ExitBlock>
             <TouchableOpacity onPress={() => signOut()} title="exit">
               <Feather name="log-out" size={24} color="#BDBDBD" />
             </TouchableOpacity>
-          </View>
+          </ExitBlock>
           <View style={{ marginBottom: 34 }}>
             <Text
               style={{
@@ -130,36 +101,15 @@ export const DefaultProfileScreen = ({ navigation }) => {
               const { id, photo, photoName, region, length } = item;
 
               return (
-                <View style={{ marginBottom: 34 }}>
-                  <Image
-                    source={{ uri: photo }}
-                    style={{ height: 240, borderRadius: 8, marginBottom: 8 }}
-                  />
-                  <Text
-                    style={{
-                      color: "#212121",
-                      fontSize: 16,
-                      fontWeight: "500",
-                      marginBottom: 8,
-                    }}
-                  >
-                    {photoName}
-                  </Text>
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      justifyContent: "space-between",
-                    }}
-                  >
-                    <TouchableOpacity
-                      style={{ flexDirection: "row", alignItems: "center" }}
+                <PostContainer>
+                  <Post source={{ uri: photo }} />
+                  <View>
+                    <PostName>{photoName}</PostName>
+                  </View>
+                  <CommentBlock>
+                    <CommentBtn
                       onPress={() => {
-                        navigation.removeListener;
-                        navigation.navigate("MainScreen", { screenOpen: true });
-                        navigation.navigate("Комментарии", {
-                          postId: id,
-                          uri: photo,
-                        });
+                        goToComments(id, photo);
                       }}
                     >
                       <Feather
@@ -168,20 +118,13 @@ export const DefaultProfileScreen = ({ navigation }) => {
                         color="#BDBDBD"
                         style={{ marginRight: 6 }}
                       />
-                      <Text
-                        style={{
-                          color: "#BDBDBD",
-                          fontSize: 16,
-                        }}
-                      >
-                        {length}
-                      </Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={{ flexDirection: "row", alignItems: "center" }}
+                      <View>
+                        <CommentLength>{length}</CommentLength>
+                      </View>
+                    </CommentBtn>
+                    <MapBtn
                       onPress={() => {
-                        navigation.navigate("MainScreen", { screenOpen: true });
-                        navigation.navigate("Карта", { location: region });
+                        goToMap(region);
                       }}
                     >
                       <Feather
@@ -190,31 +133,17 @@ export const DefaultProfileScreen = ({ navigation }) => {
                         color="#BDBDBD"
                         style={{ marginRight: 4 }}
                       />
-                      <Text
-                        style={{
-                          color: "#212121",
-                          fontSize: 16,
-                          textDecorationLine: "underline",
-                        }}
-                      >
-                        {region?.country}
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
+                      <View>
+                        <TextLocation>{region?.country}</TextLocation>
+                      </View>
+                    </MapBtn>
+                  </CommentBlock>
+                </PostContainer>
               );
             }}
           />
-        </View>
+        </ProfileContainer>
       </ImageBackground>
-    </View>
+    </Container>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-});

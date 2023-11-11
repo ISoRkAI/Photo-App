@@ -31,18 +31,18 @@ import {
 } from "../../../../../firebase/firebaseOperations";
 
 const optionsMonth = [
-  "Січня",
-  "Лютого",
-  "Березня",
-  "Квітня",
-  "Травня",
-  "Червня",
-  "Липня",
-  "Серпня",
-  "Вересня",
-  "Жовтня",
-  "Листопада",
-  "Грудня",
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
 ];
 
 export const CommentScreen = ({ route, navigation }) => {

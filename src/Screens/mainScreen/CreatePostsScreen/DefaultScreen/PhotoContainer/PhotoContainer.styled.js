@@ -17,7 +17,7 @@ export const DeletePhoto = styled.TouchableOpacity`
   bottom: 0;
   width: 60px;
   height: 60px;
-  border-radius: 50%;
+  border-radius: 30px;
   align-items: center;
   justify-content: center;
 `;
@@ -40,7 +40,7 @@ export const PhotoCamera = styled(Camera)`
 export const PhotoBtn = styled.TouchableOpacity`
   width: 60px;
   height: 60px;
-  border-radius: 50%;
+  border-radius: 30px;
   background-color: rgba(255, 255, 255, 0.3);
   align-items: center;
   justify-content: center;

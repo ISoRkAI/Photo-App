@@ -49,7 +49,6 @@ export const CommentScreen = ({ route, navigation }) => {
   const [comment, setComment] = useState("");
   const [allComments, setAllComments] = useState([]);
   const [allAvatar, setAllAvatar] = useState([]);
-  const [keyboardWidth, setKeyboardWidth] = useState(0);
 
   const login = useSelector(selectorLogin);
 
@@ -68,36 +67,12 @@ export const CommentScreen = ({ route, navigation }) => {
     getAllComment(postId, setAllComments);
   }, []);
 
-  useEffect(() => {
-    const keyboardDidShowListener = Keyboard.addListener(
-      "keyboardDidShow",
-      keyboardDidShow
-    );
-    const keyboardDidHideListener = Keyboard.addListener(
-      "keyboardDidHide",
-      keyboardDidHide
-    );
-
-    return () => {
-      keyboardDidShowListener.remove();
-      keyboardDidHideListener.remove();
-    };
-  }, []);
-
   const keyboardHide = () => {
     Keyboard.dismiss();
   };
 
   const addLeadingZero = (e) => {
     return e < 10 ? "0" + e : e;
-  };
-
-  const keyboardDidShow = (frames) => {
-    setKeyboardWidth(frames.endCoordinates.height);
-  };
-
-  const keyboardDidHide = () => {
-    setKeyboardWidth(0);
   };
 
   const getCommentTime = () => {
@@ -164,7 +139,7 @@ export const CommentScreen = ({ route, navigation }) => {
           }}
         />
 
-        <TextInputContainer keyboardWidth={keyboardWidth}>
+        <TextInputContainer>
           <Input
             placeholder="Комментировать..."
             onChangeText={(value) => setComment(value)}

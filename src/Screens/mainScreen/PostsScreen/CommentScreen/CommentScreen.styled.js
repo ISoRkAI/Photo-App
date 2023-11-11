@@ -23,7 +23,7 @@ export const AvatarPhotoContainer = styled.View`
   width: 28px;
   height: 28px;
   background-color: #fd9898;
-  border-radius: 50%;
+  border-radius: 14px;
   align-items: center;
   justify-content: center;
   margin-left: ${(p) => (p.nickName === p.login ? 16 : 0)}px;
@@ -68,7 +68,7 @@ export const TimeText = styled.Text`
 export const TextInputContainer = styled.View`
   position: absolute;
   bottom: 0px;
-  bottom: ${(p) => (p.keyboardWidth === 0 ? 32 : p.keyboardWidth)}px;
+  bottom: 0px;
   right: 16px;
   width: 100%;
   background-color: #ffffff;
@@ -92,7 +92,7 @@ export const AddBtn = styled.TouchableOpacity`
   height: 34px;
   top: 9px;
   right: 9px;
-  border-radius: 50%;
+  border-radius: 17px;
   background-color: #ff6c00;
   justify-content: center;
   align-items: center;

@@ -1,4 +1,4 @@
-# photoMessenge
+# Photo App
 In the application, React Native, Expo, Firebase, and React Redux are utilized.
 
 React Native:
